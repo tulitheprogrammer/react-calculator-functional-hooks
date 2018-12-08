@@ -14,44 +14,51 @@ const labels = [
   "8",
   "9",
   "0",
+  "=",
+  "C",
+];
+
+const operands = [
   "+",
   "-",
   "%",
   "*",
   "/",
-  "=",
-  "C",
 ];
 // export interface IContainerProps{
 //   label: string
 // }
 export const CalcContainer: React.FC = ()=>{
+  const [ isResult, setIsResult ] = useState<boolean>(false);
   const [ isError, setIsError ] = useState<boolean>(false);
   const [ buffer, setBuffer ] = useState<string[]>([]);
   const calc = ()=>{
     try{
-    return new Function(`return [${buffer.join('')}]`)();
+     return new Function(`return [${buffer.join('')}]`)();
     }
-  catch(e){
-    setIsError(true);
-    return [];
+    catch(e){
+      return [];
+    }
   }
-  }
-  const getVal = (input: string)=> {
 
-    const prevBuffer = isError?[]:buffer;
+  const reset = ()=>{
     setIsError(false);
+    setIsResult(false);
+  };
+  const getVal = (input: string)=> {
 
     switch(input){
       case 'C':
-         return [];
+        reset();
+        return [];
       case '=':
-      const result = calc();
-      if(!Number.isFinite(result)){
-        setIsError(true);
-      }
-        return calc();
+        const result = calc();
+        setIsError(!isFinite(result));
+        setIsResult(true);
+        return result;
       default:
+        const prevBuffer = (isError || (isResult && !operands.some((x)=>x===input)))?[]:buffer;
+        reset();
         return [ ...prevBuffer, input];
     }
 
@@ -63,6 +70,6 @@ export const CalcContainer: React.FC = ()=>{
   return <div>
     <CalcScreen labels={buffer}/><div>
     {
-      labels.map((x:string)=>(<CalcButton label={x} click={update}/>))
+      [...labels, ...operands].map((x:string)=>(<CalcButton label={x} click={update}/>))
     }</div></div>;
 };
